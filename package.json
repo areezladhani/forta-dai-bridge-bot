@@ -1,9 +1,11 @@
 {
-  "name": "forta-agent-starter",
+  "name": "maker-bot",
   "version": "0.0.1",
-  "description": "Forta Agent Typescript starter project",
+  "description": "MakerDao Dai bridge solvency checker",
   "chainIds": [
-    1
+    1,
+    10,
+    42161
   ],
   "scripts": {
     "build": "tsc",
@@ -24,7 +26,9 @@
     "test": "jest"
   },
   "dependencies": {
-    "forta-agent": "^0.1.13"
+    "ethers-multicall": "^0.2.3",
+    "forta-agent": "^0.1.13",
+    "forta-agent-tools": "^3.1.2"
   },
   "devDependencies": {
     "@types/jest": "^27.0.1",

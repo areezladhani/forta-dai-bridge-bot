@@ -1,26 +1,55 @@
-# Large Tether Transfer Agent
+# MakerDao Bridge Invariant Bot
 
 ## Description
 
-This agent detects transactions with large Tether transfers
+This bot detects insolvency on the makerDao optimism and arbitrum layer 1 escrows.
 
 ## Supported Chains
 
 - Ethereum
-- List any other chains this agent can support e.g. BSC
+- Arbitrum
+- Optimism
 
 ## Alerts
 
-Describe each of the type of alerts fired by this agent
+- l1-escrow-supply
 
-- FORTA-1
-  - Fired when a transaction contains a Tether transfer over 10,000 USDT
-  - Severity is always set to "low" (mention any conditions where it could be something else)
-  - Type is always set to "info" (mention any conditions where it could be something else)
-  - Mention any other type of metadata fields included with this alert
+  - Fired with MakerDao L1 Arbitrum and Optimism escrow balances each time a new block is mined.
+  - Severity is always set to "Info".
+  - Type is always set to "info".
+  - Metadata: {
+    optEscrBal: balance of the MakerDao Optimism escrow on Ethereum.
+    arbEscrBal: balance of the MakerDao Arbitrum escrow on Ethereum.
+    }
+
+- L1 Optimism/Arbitrum escrow insolvent.
+  - Fired when the l1 escrow balance is less then the l2 token total supply.
+  - Severity is always set to "critical".
+  - Type is always set to "exploit".
+  - Metadata: {
+    l1Escrow: balance of the Opt/Arb l1 escrow balance.
+    L2supply: total supply of the Opt/Arb l2 token.
+    }
 
 ## Test Data
 
 The agent behaviour can be verified with the following transactions:
 
-- 0x3a0f757030beec55c22cbc545dd8a844cbbb2e6019461769e1bc3f3a95d10826 (15,000 USDT)
+- This bot can be tested when deployed on the following networks:
+
+  - Ethereum
+
+    - chainId: 1
+    - Eth will be the default set network when testing.
+
+  - Optimism
+
+    - chainId: 10
+    - Add the code below to the forta.config.json file to test.
+      - const optRpcUrl = "https://rpc.ankr.com/optimism";
+
+  - Arbitrum
+
+    - chainId: 42161
+    - Add the code below to the forta.config.json file to test.
+      - const optRpcUrl = "https://rpc.ankr.com/arbitrum";
