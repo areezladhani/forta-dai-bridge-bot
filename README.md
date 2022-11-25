@@ -46,10 +46,10 @@ The agent behaviour can be verified with the following transactions:
 
     - chainId: 10
     - Add the code below to the forta.config.json file to test.
-      - const optRpcUrl = "https://rpc.ankr.com/optimism";
+      - "jsonRpcUrl": "https://rpc.ankr.com/optimism";
 
   - Arbitrum
 
     - chainId: 42161
     - Add the code below to the forta.config.json file to test.
-      - const optRpcUrl = "https://rpc.ankr.com/arbitrum";
+      - "jsonRpcUrl": "https://rpc.ankr.com/arbitrum";
