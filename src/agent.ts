@@ -1,68 +1,33 @@
-import {
-  BlockEvent,
-  Finding,
-  HandleBlock,
-  HandleTransaction,
-  TransactionEvent,
-  FindingSeverity,
-  FindingType,
-} from "forta-agent";
+import { Finding, HandleBlock, BlockEvent, getEthersProvider } from "forta-agent";
+import { providers } from "ethers";
+import { getL1Balances, checkCondition } from "./helper";
 
-export const ERC20_TRANSFER_EVENT =
-  "event Transfer(address indexed from, address indexed to, uint256 value)";
-export const TETHER_ADDRESS = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
-export const TETHER_DECIMALS = 6;
-let findingsCount = 0;
+export function provideHandleBlock(provider: providers.Provider): HandleBlock {
+  return async (block: BlockEvent): Promise<Finding[]> => {
+    const findings: Finding[] = [];
+    const { chainId } = await provider.getNetwork();
 
-const handleTransaction: HandleTransaction = async (
-  txEvent: TransactionEvent
-) => {
-  const findings: Finding[] = [];
-
-  // limiting this agent to emit only 5 findings so that the alert feed is not spammed
-  if (findingsCount >= 5) return findings;
-
-  // filter the transaction logs for Tether transfer events
-  const tetherTransferEvents = txEvent.filterLog(
-    ERC20_TRANSFER_EVENT,
-    TETHER_ADDRESS
-  );
-
-  tetherTransferEvents.forEach((transferEvent) => {
-    // extract transfer event arguments
-    const { to, from, value } = transferEvent.args;
-    // shift decimals of transfer value
-    const normalizedValue = value.div(10 ** TETHER_DECIMALS);
-
-    // if more than 10,000 Tether were transferred, report it
-    if (normalizedValue.gt(10000)) {
-      findings.push(
-        Finding.fromObject({
-          name: "High Tether Transfer",
-          description: `High amount of USDT transferred: ${normalizedValue}`,
-          alertId: "FORTA-1",
-          severity: FindingSeverity.Low,
-          type: FindingType.Info,
-          metadata: {
-            to,
-            from,
-          },
-        })
-      );
-      findingsCount++;
+    // We check an emit an alert with the total supply of both escrows per block
+    if (chainId == 1) {
+      try {
+        const checkEmitL1Bal = await getL1Balances(provider, block.blockNumber, findings);
+      } catch {
+        return findings;
+      }
     }
-  });
-
-  return findings;
-};
-
-// const handleBlock: HandleBlock = async (blockEvent: BlockEvent) => {
-//   const findings: Finding[] = [];
-//   // detect some block condition
-//   return findings;
-// }
+    // if l1 escrow < l2supply, emit a alert
+    if (chainId != 1) {
+      try {
+        const l2Cond = await checkCondition(provider, block.blockNumber, findings, chainId);
+      } catch {
+        return findings;
+      }
+    }
+    return findings;
+  };
+}
 
 export default {
-  handleTransaction,
+  handleBlock: provideHandleBlock(getEthersProvider()),
   // handleBlock
 };
